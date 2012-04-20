@@ -1,0 +1,11 @@
+{
+	"name":"boneidle",
+	"version":"0.0.1",
+	"dependencies":{
+		"nodeunit":""
+	},
+	"scripts": {
+		"test": "nodeunit test/"
+	}
+
+}
