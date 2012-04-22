@@ -19,6 +19,12 @@ module.exports = {
             test.done()
         });
     },
+    "Realise Returns Array For Sequence Initialised with object":function (test) {
+        b_.sequence({a:1, b:2, c:3}).realise(function (err, value) {
+            test.same(value, [1, 2, 3]);
+            test.done()
+        });
+    },
     "Map Function":function (test) {
         b_.sequence([1, 2, 3]).map(multiplyBy100).realise(function (err, value) {
             test.same(value, [100, 200, 300]);
