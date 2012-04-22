@@ -1,4 +1,7 @@
 var b_ = require("./../lib/boneidle");
+var fs = require("fs");
+var http = require("http");
+var url = require("url");
 
 module.exports = {
     setUp:function (callback) {
@@ -85,6 +88,23 @@ module.exports = {
             test.same(data, ["Sample File Data"]);
             test.done();
         })
+    },
+    "Read File Stream returns contents":function (test) {
+        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).realise(function (err, data) {
+            test.same(data, ["Sample File Data"]);
+            test.done();
+        });
+    },
+    "Read URL Stream returns contents":function (test) {
+        var req = http.request(url.parse("http://www.google.com"), function (res) {
+            res.setEncoding('utf8');
+            b_.stream(res).realise(function (err, data) {
+                test.ok(data);
+                test.done();
+            });
+        });
+        req.end();
+
     }
 };
 
