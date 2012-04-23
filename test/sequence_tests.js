@@ -76,6 +76,12 @@ module.exports = {
             test.done()
         })
     },
+    "Take While From sequence":function (test) {
+        b_.sequence(1, 2, 3, 4).takeWhile(lessThan3, function (err, value) {
+            test.same(value, [1,2])
+            test.done()
+        })
+    },
     "Find Function with No Matches Returns Empty Option":function (test) {
         b_.sequence(1, 3, 5, 7).find(even, function (err, option) {
             test.ok(option.isEmpty)
@@ -84,6 +90,7 @@ module.exports = {
     },
     "Read File Then Map":function (test) {
         b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).map(addNewLine).realise(function (err, data) {
+            console.log("I finished!")
             test.same(data, ["Sample File Data\n"]);
             test.done();
         })
@@ -97,6 +104,12 @@ module.exports = {
     "Read File Stream returns contents":function (test) {
         b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).realise(function (err, data) {
             test.same(data, ["Sample File Data"]);
+            test.done();
+        });
+    },
+    "Read Invalid File Stream returns error":function (test) {
+        b_.stream(fs.ReadStream("./test/badfilename", {encoding:"utf8"})).realise(function (err, data) {
+            test.ok(data[0] instanceof Error);
             test.done();
         });
     },
@@ -124,6 +137,7 @@ function even(i) {
     return i % 2 == 0;
 }
 function addNewLine(s) {
+    console.log(s);
     return s += "\n";
 }
 function allways() {
@@ -138,5 +152,8 @@ function dummyIterator() {
             callback(null, 1);
         }
     }
+}
+function lessThan3(i) {
+    return i < 3;
 }
 
