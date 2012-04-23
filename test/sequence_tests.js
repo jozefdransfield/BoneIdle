@@ -28,6 +28,12 @@ module.exports = {
             test.done()
         });
     },
+    "Realise Returns Array For Sequence Initialised with Iterator":function (test) {
+        b_.sequence(dummyIterator()).take(1, function (err, value) {
+            test.same(value, [1]);
+            test.done()
+        });
+    },
     "Map Function":function (test) {
         b_.sequence([1, 2, 3]).map(multiplyBy100).realise(function (err, value) {
             test.same(value, [100, 200, 300]);
@@ -128,5 +134,15 @@ function addNewLine(s) {
 }
 function allways() {
     return true;
+}
+function dummyIterator() {
+    return {
+        hasNext: function(callback) {
+            callback(null, true);
+        },
+        next: function(callback) {
+            callback(null, 1);
+        }
+    }
 }
 
