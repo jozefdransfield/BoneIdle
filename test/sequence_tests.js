@@ -82,20 +82,14 @@ module.exports = {
             test.done();
         });
     },
-    "Read File":function (test) {
-        b_.file("./test/sample.txt").realise(function (err, data) {
-            test.equals(data, "Sample File Data");
-            test.done();
-        })
-    },
     "Read File Then Map":function (test) {
-        b_.file("./test/sample.txt").map(addNewLine).realise(function (err, data) {
+        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).map(addNewLine).realise(function (err, data) {
             test.same(data, ["Sample File Data\n"]);
             test.done();
         })
     },
     "Read File then Filter":function (test) {
-        b_.file("./test/sample.txt").filter(allways).realise(function (err, data) {
+        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).filter(allways).realise(function (err, data) {
             test.same(data, ["Sample File Data"]);
             test.done();
         })
