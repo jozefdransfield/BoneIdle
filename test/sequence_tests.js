@@ -64,12 +64,17 @@ module.exports = {
             test.done()
         })
     },
+    "Take X From sequence":function (test) {
+        b_.sequence(1, 2, 3, 4).take(2, function (err, value) {
+            test.same(value, [1,2])
+            test.done()
+        })
+    },
     "Find Function with No Matches Returns Empty Option":function (test) {
         b_.sequence(1, 3, 5, 7).find(even, function (err, option) {
             test.ok(option.isEmpty)
             test.done();
         });
-
     },
     "Read File":function (test) {
         b_.file("./test/sample.txt").realise(function (err, data) {
