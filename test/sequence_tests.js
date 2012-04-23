@@ -90,7 +90,6 @@ module.exports = {
     },
     "Read File Then Map":function (test) {
         b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).map(addNewLine).realise(function (data) {
-            console.log("I finished!")
             test.same(data, ["Sample File Data\n"]);
             test.done();
         })
@@ -122,7 +121,12 @@ module.exports = {
             });
         });
         req.end();
-
+    },
+    "Join Sequences returns the combined contents": function(test) {
+        b_.sequence([1,2,3]).join(b_.sequence(4,5,6)).realise(function (values) {
+            test.same(values, [1,2,3,4,5,6]);
+            test.done();
+        })
     }
 };
 
@@ -137,7 +141,6 @@ function even(i) {
     return i % 2 == 0;
 }
 function addNewLine(s) {
-    console.log(s);
     return s += "\n";
 }
 function allways() {
