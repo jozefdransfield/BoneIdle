@@ -10,6 +10,22 @@ module.exports = {
     tearDown:function (callback) {
         callback();
     },
+    "Option with value tests": function(test) {
+        var some = b_.some("a value");
+        test.ok(!some.isEmpty);
+        test.same(some.get(), "a value");
+        test.same(some.getOr("another value"), "a value");
+        test.same(some.getOrNull(), "a value");
+        test.done();
+    },
+    "Option with no value tests": function(test) {
+        var some = b_.none();
+        test.ok(some.isEmpty);
+        test.same(some.get(), undefined);
+        test.same(some.getOr("another value"), "another value");
+        test.same(some.getOrNull(), null);
+        test.done();
+    },
     "Realise Returns Array For Sequence Initialised with Array":function (test) {
         b_.sequence([1, 2, 3]).realise(function (value) {
             test.same(value, [1, 2, 3]);
