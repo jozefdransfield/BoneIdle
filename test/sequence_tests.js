@@ -10,20 +10,36 @@ module.exports = {
     tearDown:function (callback) {
         callback();
     },
-    "Option with value tests": function(test) {
+    "Option with value tests":function (test) {
         var some = b_.some("a value");
-        test.ok(!some.isEmpty);
+        test.ok(!some.isEmpty());
         test.same(some.get(), "a value");
         test.same(some.getOr("another value"), "a value");
         test.same(some.getOrNull(), "a value");
         test.done();
     },
-    "Option with no value tests": function(test) {
+    "Option with no value tests":function (test) {
         var some = b_.none();
-        test.ok(some.isEmpty);
+        test.ok(some.isEmpty());
         test.same(some.get(), undefined);
         test.same(some.getOr("another value"), "another value");
         test.same(some.getOrNull(), null);
+        test.done();
+    },
+    "Either with left": function(test) {
+        var left = b_.left("a value");
+        test.ok(left.isLeft());
+        test.ok(!left.isRight())
+        test.same(left.left(), "a value");
+        test.same(left.right(), undefined);
+        test.done();
+    },
+    "Either with right": function(test) {
+        var right = b_.right("a value");
+        test.ok(right.isRight())
+        test.ok(!right.isLeft());
+        test.same(right.right(), "a value");
+        test.same(right.left(), undefined);
         test.done();
     },
     "Realise Returns Array For Sequence Initialised with Array":function (test) {
@@ -64,13 +80,13 @@ module.exports = {
     },
     "Head Returns Empty Option on Empty Array":function (test) {
         b_.sequence([]).head(function (value) {
-            test.ok(value.isEmpty);
+            test.ok(value.isEmpty());
             test.done();
         });
     },
     "Head Returns Empty Option on Empty Sequence":function (test) {
         b_.sequence().head(function (value) {
-            test.ok(value.isEmpty);
+            test.ok(value.isEmpty());
             test.done();
         });
     },
@@ -88,13 +104,13 @@ module.exports = {
     },
     "Take X From sequence":function (test) {
         b_.sequence(1, 2, 3, 4).take(2, function (value) {
-            test.same(value, [1,2])
+            test.same(value, [1, 2])
             test.done()
         })
     },
     "Take While From sequence":function (test) {
         b_.sequence(1, 2, 3, 4).takeWhile(lessThan3, function (value) {
-            test.same(value, [1,2])
+            test.same(value, [1, 2])
             test.done()
         })
     },
@@ -138,11 +154,32 @@ module.exports = {
         });
         req.end();
     },
-    "Join Sequences returns the combined contents": function(test) {
-        b_.sequence([1,2,3]).join(b_.sequence(4,5,6)).realise(function (values) {
-            test.same(values, [1,2,3,4,5,6]);
+    "Join Sequences returns the combined contents":function (test) {
+        b_.sequence([1, 2, 3]).join(b_.sequence(4, 5, 6)).realise(function (values) {
+            test.same(values, [1, 2, 3, 4, 5, 6]);
             test.done();
         })
+    },
+    "Chain callbacks test":function (test) {
+        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
+        chain.call("my param", function (either) {
+            test.ok(either.right());
+            test.done();
+        });
+    },
+    "Chain fails first callback":function (test) {
+        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
+        chain.call("s", function(either) {
+            test.ok(either.isLeft());
+            test.done();
+        });
+    },
+    "Chain fails second callback": function(test) {
+        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
+        chain.call(null, function(either) {
+            test.ok(either.isLeft());
+            test.done();
+        });
     }
 };
 
@@ -164,15 +201,29 @@ function allways() {
 }
 function dummyIterator() {
     return {
-        hasNext: function(callback) {
+        hasNext:function (callback) {
             callback(true);
         },
-        next: function(callback) {
+        next:function (callback) {
             callback(1);
         }
     }
 }
 function lessThan3(i) {
     return i < 3;
+}
+function isNotNull(value) {
+    if (value) {
+        return b_.right(value);
+    } else {
+        return b_.left(value);
+    }
+}
+function hasLengthGreaterThan2(value) {
+    if (value.length > 2) {
+        return b_.right(value);
+    } else {
+        return b_.left(value);
+    }
 }
 
