@@ -212,18 +212,18 @@ function dummyIterator() {
 function lessThan3(i) {
     return i < 3;
 }
-function isNotNull(value) {
+function isNotNull(value, callback) {
     if (value) {
-        return b_.right(value);
+        callback(b_.right(value));
     } else {
-        return b_.left(value);
+        callback(b_.left(value));
     }
 }
-function hasLengthGreaterThan2(value) {
+function hasLengthGreaterThan2(value, callback) {
     if (value.length > 2) {
-        return b_.right(value);
+        callback(b_.right(value));
     } else {
-        return b_.left(value);
+        callback(b_.left(value));
     }
 }
 
