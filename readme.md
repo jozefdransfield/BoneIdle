@@ -17,6 +17,17 @@ Bone Idle
 	assertEquals(none.getOr(anotherValue), value);
 	
 ##### Either
+###### Left 
+	 var left = b_.left(value);
+	 assertEquals(left.isLeft(), true);
+	 assertEquals(left.isRight(), false);
+	 assertEquals(left.value()), value);
+###### Right 
+	 var right = b_.right(value);
+	 assertEquals(right.isLeft(), false);
+	 assertEquals(right.isRight(), true);
+	 assertEquals(right.value()), value)
+
 
 
 ####  Callback Chaining
