@@ -56,7 +56,7 @@ module.exports = {
     },
     "Realise Returns Array For Sequence Initialised with object":function (test) {
         b_.sequence({a:1, b:2, c:3}).realise(function (value) {
-            test.same(value, [1, 2, 3]);
+            test.same(value, [b_.nameValue("a", 1), b_.nameValue("b", 2), b_.nameValue("c", 3)]);
             test.done()
         });
     },
