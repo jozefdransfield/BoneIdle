@@ -72,8 +72,20 @@ module.exports = {
             test.done();
         });
     },
+    "Map Function with callback":function (test) {
+        b_.sequence([1, 2, 3]).map(b_.usingCallback(multiplyBy100withCallback)).realise(function (value) {
+            test.same(value, [100, 200, 300]);
+            test.done();
+        });
+    },
     "Fold Function":function (test) {
         b_.sequence([1, 2, 3]).foldLeft(0, sum, function (value) {
+            test.equals(value, 6);
+            test.done();
+        });
+    },
+    "Fold FunctionUsingCallback":function (test) {
+        b_.sequence([1, 2, 3]).foldLeft(0, b_.usingCallback(sumWithCallback), function (value) {
             test.equals(value, 6);
             test.done();
         });
@@ -96,8 +108,20 @@ module.exports = {
             test.done();
         });
     },
+    "Filter Function With Callback":function (test) {
+        b_.sequence(1, 2, 3, 4).filter(b_.usingCallback(evenWithCallback)).realise(function (value) {
+            test.same(value, [2, 4]);
+            test.done();
+        });
+    },
     "Find Function":function (test) {
         b_.sequence(1, 2, 3, 4).find(even, function (option) {
+            test.equals(option.get(), 2)
+            test.done()
+        })
+    },
+    "Find Function using callback":function (test) {
+        b_.sequence(1, 2, 3, 4).find(b_.usingCallback(evenWithCallback), function (option) {
             test.equals(option.get(), 2)
             test.done()
         })
@@ -187,11 +211,20 @@ module.exports = {
 function multiplyBy100(i) {
     return i * 100;
 }
+function multiplyBy100withCallback(i, callback) {
+    callback(i*100);
+}
 function sum(seed, i) {
     return seed + i;
 }
+function sumWithCallback(seed, i, callback) {
+    callback(seed + i);
+}
 function even(i) {
     return i % 2 == 0;
+}
+function evenWithCallback(i, callback) {
+    callback(i % 2 == 0);
 }
 function addNewLine(s) {
     return s += "\n";
