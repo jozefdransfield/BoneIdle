@@ -7,8 +7,10 @@
 	"repository"    : {"type": "git", "url": "git@github.com:jozefdransfield/BoneIdle.git"},
 	"main": "./lib/boneidle.js",
 	"dependencies":{
-		"nodeunit":"",
 		"uglify-js": ""
+	},
+	"devDependencies": {
+		"nodeunit":""
 	},
 	"scripts": {
 		"test": "nodeunit test/",

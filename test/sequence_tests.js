@@ -32,7 +32,7 @@ module.exports = {
         test.same(some.getOrNull(), null);
         test.done();
     },
-    "Either with left": function(test) {
+    "Either with left":function (test) {
         var left = b_.left("a value");
         test.ok(left.isLeft());
         test.ok(!left.isRight())
@@ -40,7 +40,7 @@ module.exports = {
         test.same(left.right(), undefined);
         test.done();
     },
-    "Either with right": function(test) {
+    "Either with right":function (test) {
         var right = b_.right("a value");
         test.ok(right.isRight())
         test.ok(!right.isLeft());
@@ -84,9 +84,9 @@ module.exports = {
             test.done();
         });
     },
-    "Flat Map Function":function (test) {
-        b_.debug_sequence([1, 2, 3]).map(multiplyBy100).realise(function (value) {
-            test.same(value, [100, 200, 300]);
+    "Flat Map function":function (test) {
+        b_.sequence([1, 2, 3]).flatMap(expandToArray).realise(function (val) {
+            test.same(val, [1, 2, 3, 2, 4, 6, 3, 6, 9]);
             test.done();
         });
     },
@@ -205,14 +205,14 @@ module.exports = {
     },
     "Chain fails first callback":function (test) {
         var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
-        chain.call("s", function(either) {
+        chain.call("s", function (either) {
             test.ok(either.isLeft());
             test.done();
         });
     },
-    "Chain fails second callback": function(test) {
+    "Chain fails second callback":function (test) {
         var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
-        chain.call(null, function(either) {
+        chain.call(null, function (either) {
             test.ok(either.isLeft());
             test.done();
         });
@@ -224,7 +224,7 @@ function multiplyBy100(i) {
     return i * 100;
 }
 function multiplyBy100withCallback(i, callback) {
-    callback(i*100);
+    callback(i * 100);
 }
 function sum(seed, i) {
     return seed + i;
@@ -245,11 +245,11 @@ function allways() {
     return true;
 }
 function DummyIterator() {
-    this.hasNext=function (callback) {
-            callback(true);
+    this.hasNext = function (callback) {
+        callback(true);
     }
-    this.next=function (callback) {
-            callback(1);
+    this.next = function (callback) {
+        callback(1);
     }
 }
 DummyIterator.prototype = new b_.iterators.Iterator();
@@ -269,5 +269,8 @@ function hasLengthGreaterThan2(value, callback) {
     } else {
         callback(b_.left(value));
     }
+}
+function expandToArray(val) {
+    return [val * 1, val * 2, val * 3];
 }
 
