@@ -67,7 +67,7 @@ module.exports = {
         });
     },
     "Realise Returns Array For Sequence Initialised with Iterator":function (test) {
-        b_.sequence(dummyIterator()).take(1, function (value) {
+        b_.sequence(new DummyIterator()).take(1, function (value) {
             test.same(value, [1]);
             test.done()
         });
@@ -80,6 +80,12 @@ module.exports = {
     },
     "Map Function with callback":function (test) {
         b_.sequence([1, 2, 3]).map(b_.usingCallback(multiplyBy100withCallback)).realise(function (value) {
+            test.same(value, [100, 200, 300]);
+            test.done();
+        });
+    },
+    "Flat Map Function":function (test) {
+        b_.debug_sequence([1, 2, 3]).map(multiplyBy100).realise(function (value) {
             test.same(value, [100, 200, 300]);
             test.done();
         });
@@ -238,16 +244,15 @@ function addNewLine(s) {
 function allways() {
     return true;
 }
-function dummyIterator() {
-    return {
-        hasNext:function (callback) {
+function DummyIterator() {
+    this.hasNext=function (callback) {
             callback(true);
-        },
-        next:function (callback) {
+    }
+    this.next=function (callback) {
             callback(1);
-        }
     }
 }
+DummyIterator.prototype = new b_.iterators.Iterator();
 function lessThan3(i) {
     return i < 3;
 }
