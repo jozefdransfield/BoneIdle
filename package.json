@@ -3,17 +3,19 @@
 	"description": "Functional library with callbacks",
 	"homepage": "https://github.com/jozefdransfield/BoneIdle",
 	"author": "Jozef Dransfield <Jozef.Dransfield@me.com>",
-	"version":"0.0.6",
+	"version":"0.0.7",
 	"repository"    : {"type": "git", "url": "git@github.com:jozefdransfield/BoneIdle.git"},
 	"main": "./lib/boneidle.js",
 	"dependencies":{
-		"uglify-js": ""
+
 	},
 	"devDependencies": {
-		"nodeunit":""
+		"nodeunit":"",
+		"uglify-js": "",
+		"stitch": ""
 	},
 	"scripts": {
 		"test": "nodeunit test/**",
-		"preinstall": "uglifyjs lib/boneidle.js > lib/boneidle.min.js"
+		"preinstall": "node pkg.js && uglifyjs release/boneidle.js > release/boneidle.min.js"
 	}
 }
