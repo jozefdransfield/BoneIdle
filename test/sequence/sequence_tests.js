@@ -46,6 +46,12 @@ module.exports = {
             test.done();
         });
     },
+    "Flat Map function with one argument":function (test) {
+        b_.sequence([1]).flatMap(expandToSequence).realise(function (val) {
+            test.same(val, [1, 2, 3]);
+            test.done();
+        });
+    },
     "Fold Function":function (test) {
         b_.sequence([1, 2, 3]).foldLeft(0, sum, function (value) {
             test.equals(value, 6);
