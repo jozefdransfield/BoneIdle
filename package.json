@@ -16,6 +16,6 @@
 	},
 	"scripts": {
 		"test": "nodeunit test/**",
-		"preinstall": "node pkg.js && uglifyjs release/boneidle.js > release/boneidle.min.js"
+		"postinstall": "node pkg.js && uglifyjs release/boneidle.js > release/boneidle.min.js"
 	}
 }
