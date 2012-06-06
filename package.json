@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/jozefdransfield/BoneIdle",
 	"author": "Jozef Dransfield <Jozef.Dransfield@me.com>",
 	"version":"0.0.7",
-	"repository"    : {"type": "git", "url": "git@github.com:jozefdransfield/BoneIdle.git"},
+	"repository" : {"type": "git", "url": "git@github.com:jozefdransfield/BoneIdle.git"},
 	"main": "./lib/boneidle.js",
 	"dependencies":{
 
