@@ -18,7 +18,7 @@ module.exports = {
     },
     "Realise Returns Array For Sequence Initialised with object":function (test) {
         b_.sequence({a:1, b:2, c:3}).realise(function (value) {
-            test.same(value, [b_.nameValue("a", 1), b_.nameValue("b", 2), b_.nameValue("c", 3)]);
+            test.same(value, [b_.namevalue.nameValue("a", 1), b_.namevalue.nameValue("b", 2), b_.namevalue.nameValue("c", 3)]);
             test.done()
         });
     },
@@ -35,13 +35,13 @@ module.exports = {
         });
     },
     "Map Function with callback":function (test) {
-        b_.sequence([1, 2, 3]).map(b_.usingCallback(multiplyBy100withCallback)).realise(function (value) {
+        b_.sequence([1, 2, 3]).map(b_.markers.usingCallback(multiplyBy100withCallback)).realise(function (value) {
             test.same(value, [100, 200, 300]);
             test.done();
         });
     },
     "Flat Map function":function (test) {
-        b_.sequence([1, 2, 3]).flatMap(expandToArray).realise(function (val) {
+        b_.sequence([1, 2, 3]).flatMap(expandToSequence).realise(function (val) {
             test.same(val, [1, 2, 3, 2, 4, 6, 3, 6, 9]);
             test.done();
         });
@@ -53,7 +53,7 @@ module.exports = {
         });
     },
     "Fold FunctionUsingCallback":function (test) {
-        b_.sequence([1, 2, 3]).foldLeft(0, b_.usingCallback(sumWithCallback), function (value) {
+        b_.sequence([1, 2, 3]).foldLeft(0, b_.markers.usingCallback(sumWithCallback), function (value) {
             test.equals(value, 6);
             test.done();
         });
@@ -77,7 +77,7 @@ module.exports = {
         });
     },
     "Filter Function With Callback":function (test) {
-        b_.sequence(1, 2, 3, 4).filter(b_.usingCallback(evenWithCallback)).realise(function (value) {
+        b_.sequence(1, 2, 3, 4).filter(b_.markers.usingCallback(evenWithCallback)).realise(function (value) {
             test.same(value, [2, 4]);
             test.done();
         });
@@ -89,7 +89,7 @@ module.exports = {
         })
     },
     "Find Function using callback":function (test) {
-        b_.sequence(1, 2, 3, 4).find(b_.usingCallback(evenWithCallback), function (option) {
+        b_.sequence(1, 2, 3, 4).find(b_.markers.usingCallback(evenWithCallback), function (option) {
             test.equals(option.get(), 2)
             test.done()
         })
@@ -150,6 +150,6 @@ DummyIterator.prototype = new b_.iterators.Iterator();
 function lessThan3(i) {
     return i < 3;
 }
-function expandToArray(val) {
-    return [val * 1, val * 2, val * 3];
+function expandToSequence(val) {
+    return b_.sequence([val * 1, val * 2, val * 3]);
 }
