@@ -13,7 +13,7 @@
 		"nodeunit":""
 	},
 	"scripts": {
-		"test": "nodeunit test/",
+		"test": "nodeunit test/**",
 		"preinstall": "uglifyjs lib/boneidle.js > lib/boneidle.min.js"
 	}
 }

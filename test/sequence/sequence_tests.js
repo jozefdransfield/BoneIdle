@@ -1,53 +1,9 @@
-var b_ = require("./../lib/boneidle");
+var b_ = require("./../../lib/boneidle");
 var fs = require("fs");
 var http = require("http");
 var url = require("url");
 
 module.exports = {
-    setUp:function (callback) {
-        callback();
-    },
-    tearDown:function (callback) {
-        callback();
-    },
-    "Option with value tests":function (test) {
-        var some = b_.some("a value");
-        test.ok(!some.isEmpty());
-        test.same(some.get(), "a value");
-        test.same(some.getOr("another value"), "a value");
-        test.same(some.getOrNull(), "a value");
-        test.done();
-    },
-    "Name And Value":function (test) {
-        var nv = b_.nameValue("a name", "a value");
-        test.same(nv.name, "a name");
-        test.same(nv.value, "a value");
-        test.done();
-    },
-    "Option with no value tests":function (test) {
-        var some = b_.none();
-        test.ok(some.isEmpty());
-        test.same(some.get(), undefined);
-        test.same(some.getOr("another value"), "another value");
-        test.same(some.getOrNull(), null);
-        test.done();
-    },
-    "Either with left":function (test) {
-        var left = b_.left("a value");
-        test.ok(left.isLeft());
-        test.ok(!left.isRight())
-        test.same(left.left(), "a value");
-        test.same(left.right(), undefined);
-        test.done();
-    },
-    "Either with right":function (test) {
-        var right = b_.right("a value");
-        test.ok(right.isRight())
-        test.ok(!right.isLeft());
-        test.same(right.right(), "a value");
-        test.same(right.left(), undefined);
-        test.done();
-    },
     "Realise Returns Array For Sequence Initialised with Array":function (test) {
         b_.sequence([1, 2, 3]).realise(function (value) {
             test.same(value, [1, 2, 3]);
@@ -156,70 +112,13 @@ module.exports = {
             test.done();
         });
     },
-    "Read File Then Map":function (test) {
-        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).map(addNewLine).realise(function (data) {
-            test.same(data, ["Sample File Data\n"]);
-            test.done();
-        })
-    },
-    "Read File then Filter":function (test) {
-        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).filter(allways).realise(function (data) {
-            test.same(data, ["Sample File Data"]);
-            test.done();
-        })
-    },
-    "Read File Stream returns contents":function (test) {
-        b_.stream(fs.ReadStream("./test/sample.txt", {encoding:"utf8"})).realise(function (data) {
-            test.same(data, ["Sample File Data"]);
-            test.done();
-        });
-    },
-    "Read Invalid File Stream returns error":function (test) {
-        b_.stream(fs.ReadStream("./test/badfilename", {encoding:"utf8"})).realise(function (data) {
-            test.ok(data[0] instanceof Error);
-            test.done();
-        });
-    },
-    "Read URL Stream returns contents":function (test) {
-        var req = http.request(url.parse("http://www.google.com"), function (res) {
-            res.setEncoding('utf8');
-            b_.stream(res).realise(function (data) {
-                test.ok(data);
-                test.done();
-            });
-        });
-        req.end();
-    },
     "Join Sequences returns the combined contents":function (test) {
         b_.sequence([1, 2, 3]).join(b_.sequence(4, 5, 6)).realise(function (values) {
             test.same(values, [1, 2, 3, 4, 5, 6]);
             test.done();
         })
-    },
-    "Chain callbacks test":function (test) {
-        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
-        chain.call("my param", function (either) {
-            test.ok(either.right());
-            test.done();
-        });
-    },
-    "Chain fails first callback":function (test) {
-        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
-        chain.call("s", function (either) {
-            test.ok(either.isLeft());
-            test.done();
-        });
-    },
-    "Chain fails second callback":function (test) {
-        var chain = b_.chain(isNotNull).and(hasLengthGreaterThan2);
-        chain.call(null, function (either) {
-            test.ok(either.isLeft());
-            test.done();
-        });
     }
 };
-
-
 function multiplyBy100(i) {
     return i * 100;
 }
@@ -238,12 +137,7 @@ function even(i) {
 function evenWithCallback(i, callback) {
     callback(i % 2 == 0);
 }
-function addNewLine(s) {
-    return s += "\n";
-}
-function allways() {
-    return true;
-}
+
 function DummyIterator() {
     this.hasNext = function (callback) {
         callback(true);
@@ -256,21 +150,6 @@ DummyIterator.prototype = new b_.iterators.Iterator();
 function lessThan3(i) {
     return i < 3;
 }
-function isNotNull(value, callback) {
-    if (value) {
-        callback(b_.right(value));
-    } else {
-        callback(b_.left(value));
-    }
-}
-function hasLengthGreaterThan2(value, callback) {
-    if (value.length > 2) {
-        callback(b_.right(value));
-    } else {
-        callback(b_.left(value));
-    }
-}
 function expandToArray(val) {
     return [val * 1, val * 2, val * 3];
 }
-
