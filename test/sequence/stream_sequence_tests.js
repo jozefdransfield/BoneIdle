@@ -5,7 +5,18 @@ var url = require("url");
 
 var FILE = "./test/sequence/sample.txt";
 
+var server;
 module.exports = {
+    "setUp": function(callback) {
+        server = http.createServer(function (req, res) {
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end('Hello World\n');
+        }).listen(1337, '127.0.0.1', callback);
+    },
+    "tearDown": function(callback) {
+        server.close();
+        callback();
+    },
     "Read File Then Map":function (test) {
         b_.stream(fs.ReadStream(FILE, {encoding:"utf8"})).map(addNewLine).realise(function (data) {
             test.same(data, ["Sample File Data\n"]);
@@ -31,7 +42,7 @@ module.exports = {
         });
     },
     "Read URL Stream returns contents":function (test) {
-        var req = http.request(url.parse("http://www.google.com"), function (res) {
+        var req = http.request(url.parse("http://127.0.0.1:1337"), function (res) {
             res.setEncoding('utf8');
             b_.stream(res).realise(function (data) {
                 test.ok(data);
