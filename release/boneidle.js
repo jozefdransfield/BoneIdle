@@ -49,8 +49,7 @@
   }
   return this.require.define;
 }).call(this)({"boneidle.chain": function(exports, require, module) {module.exports = {
-    Chain:Chain,
-    chain:chain
+    Chain:Chain
 }
 
 function Chain(f) {
@@ -72,10 +71,6 @@ function Chain(f) {
             }
         });
     }
-}
-
-function chain(f) {
-    return new Chain(f);
 }
 }, "boneidle.either": function(exports, require, module) {module.exports = {
     Either: Either,
@@ -117,7 +112,7 @@ function Either(isLeft, value) {
             return right;
         }
     }
-}}, "boneidle.iterators": function(exports, require, module) {var nameValue = require("./boneidle.namevalue");
+}}, "boneidle.iterators": function(exports, require, module) {var pair = require("./boneidle.pair");
 var markers = require("./boneidle.markers");
 var shared = require("./boneidle.shared");
 
@@ -258,7 +253,7 @@ function ObjectIterator(obj) {
     this.hasNext = arrayIterator.hasNext;
     this.next = function (callback) {
         arrayIterator.next(function (key) {
-            callback(new nameValue.NameValue(key, obj[key]));
+            callback(new pair.Pair(key, obj[key]));
         });
     }
 }
@@ -410,7 +405,7 @@ function returnAndClear(obj) {
  */
 
 var iterators = require("./boneidle.iterators");
-var namevalue = require("./boneidle.namevalue");
+var pair = require("./boneidle.pair");
 var markers = require("./boneidle.markers");
 var shared = require("./boneidle.shared");
 var option = require("./boneidle.option");
@@ -418,18 +413,7 @@ var either = require("./boneidle.either");
 var chain = require("./boneidle.chain");
 var queue = require("./boneidle.queue");
 
-module.exports = {
-    sequence:sequence,
-    debug_sequence:debug_sequence,
-    range:range,
-    option:option,
-    stream:stream,
-    either:either,
-    chain:chain,
-    namevalue:namevalue,
-    markers:markers,
-    iterators:iterators
-};
+module.exports = sequence;
 
 function sequence() {
     if (arguments.length == 0) {
@@ -446,6 +430,21 @@ function sequence() {
         return new Sequence(new iterators.ArrayIterator(arguments));
     }
 }
+
+sequence.debug = debug_sequence;
+sequence.chain = function(f) {
+    return new chain.Chain(f);
+}
+sequence.range = range;
+sequence.option = option;
+sequence.stream = stream;
+sequence.either = either;
+sequence.pair = function(first, second) {
+    return new pair.Pair(first, second);
+}
+sequence.markers = markers;
+sequence.iterators = iterators;
+
 
 function debug_sequence() {
     return new DebugSequence(sequence.apply(null, arguments));
@@ -599,24 +598,6 @@ function FunctionWithCallbackWrapper(func) {
 
 function usingCallback(func) {
     return new FunctionWithCallbackWrapper(func);
-}}, "boneidle.namevalue": function(exports, require, module) {module.exports = {
-    NameValue: NameValue,
-    nameValue: nameValue
-}
-
-function NameValue(nameParam, valueParam) {
-    var name = nameParam;
-    var value = valueParam;
-    this.__defineGetter__("name", function () {
-        return name;
-    });
-    this.__defineGetter__("value", function () {
-        return value;
-    });
-}
-
-function nameValue(name, value) {
-    return new NameValue(name, value);
 }}, "boneidle.option": function(exports, require, module) {module.exports = {
     Option: Option,
     some: some,
@@ -650,7 +631,19 @@ function some(value) {
 
 function none() {
     return new Option(true);
-}}, "boneidle.queue": function(exports, require, module) {module.exports = {
+}}, "boneidle.pair": function(exports, require, module) {module.exports = {
+    Pair: Pair
+}
+
+function Pair(first, second) {
+    this.__defineGetter__('first', function(){
+        return first;
+    });
+    this.__defineGetter__('second', function(){
+        return second;
+    });
+}
+}, "boneidle.queue": function(exports, require, module) {module.exports = {
     Queue: Queue
 }
 
