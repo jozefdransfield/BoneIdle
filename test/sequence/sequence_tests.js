@@ -22,6 +22,12 @@ module.exports = {
             test.done()
         });
     },
+    "Realise Returns Array For Sequence Initialised with nested objects":function (test) {
+        b_({a: {"message": "hello"}, b:{"message": "world"}}).realise(function (value) {
+            test.same(value, [b_.pair("a", {"message": "hello"}), b_.pair("b", {"message": "world"})]);
+            test.done()
+        });
+    },
     "Realise Returns Array For Sequence Initialised with Iterator":function (test) {
         b_(new DummyIterator()).take(1, function (value) {
             test.same(value, [1]);
