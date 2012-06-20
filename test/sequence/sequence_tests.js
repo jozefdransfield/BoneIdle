@@ -41,7 +41,7 @@ module.exports = {
         });
     },
     "Map Function with callback":function (test) {
-        b_([1, 2, 3]).map(b_.markers.usingCallback(multiplyBy100withCallback)).realise(function (value) {
+        b_([1, 2, 3]).map$(multiplyBy100withCallback).realise(function (value) {
             test.same(value, [100, 200, 300]);
             test.done();
         });
@@ -65,7 +65,7 @@ module.exports = {
         });
     },
     "Fold FunctionUsingCallback":function (test) {
-        b_([1, 2, 3]).foldLeft(0, b_.markers.usingCallback(sumWithCallback), function (value) {
+        b_([1, 2, 3]).foldLeft$(0, sumWithCallback, function (value) {
             test.equals(value, 6);
             test.done();
         });
@@ -89,7 +89,7 @@ module.exports = {
         });
     },
     "Filter Function With Callback":function (test) {
-        b_(1, 2, 3, 4).filter(b_.markers.usingCallback(evenWithCallback)).realise(function (value) {
+        b_(1, 2, 3, 4).filter$(evenWithCallback).realise(function (value) {
             test.same(value, [2, 4]);
             test.done();
         });
@@ -101,7 +101,7 @@ module.exports = {
         })
     },
     "Find Function using callback":function (test) {
-        b_(1, 2, 3, 4).find(b_.markers.usingCallback(evenWithCallback), function (option) {
+        b_(1, 2, 3, 4).find$(evenWithCallback, function (option) {
             test.equals(option.get(), 2)
             test.done()
         })
@@ -118,6 +118,12 @@ module.exports = {
             test.done()
         })
     },
+    "Take While From sequence with callback":function (test) {
+        b_(1, 2, 3, 4).takeWhile$(lessThan3WithCallback, function (value) {
+            test.same(value, [1, 2])
+            test.done()
+        })
+    },
     "Find Function with No Matches Returns Empty Option":function (test) {
         b_(1, 3, 5, 7).find(even, function (option) {
             test.ok(option.isEmpty)
@@ -130,6 +136,9 @@ module.exports = {
             test.done();
         })
     }
+    //TODO: Add a split on test with and without callback
+    //TODO: Add a test for flatMap with callback
+
 };
 function multiplyBy100(i) {
     return i * 100;
@@ -161,6 +170,9 @@ function DummyIterator() {
 DummyIterator.prototype = new b_.iterators.Iterator();
 function lessThan3(i) {
     return i < 3;
+}
+function lessThan3WithCallback(i, callback) {
+    callback(i < 3);
 }
 function expandToSequence(val) {
     return b_([val * 1, val * 2, val * 3]);
