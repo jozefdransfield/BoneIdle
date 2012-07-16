@@ -3,7 +3,7 @@
 	"description": "Functional library with callbacks",
 	"homepage": "https://github.com/jozefdransfield/BoneIdle",
 	"author": "Jozef Dransfield <Jozef.Dransfield@me.com>",
-	"version":"0.1.0",
+	"version":"0.1.1",
 	"repository" : {"type": "git", "url": "git@github.com:jozefdransfield/BoneIdle.git"},
 	"main": "./lib/boneidle.js",
 	"dependencies":{
