@@ -35,7 +35,7 @@ module.exports = {
         });
     },
     "Map Function":function (test) {
-        b_([1, 2, 3]).map(multiplyBy100).realise(function (value) {
+        b_([1, 2, 3]).map(b_.functions.multiplyBy(100)).realise(function (value) {
             test.same(value, [100, 200, 300]);
             test.done();
         });
@@ -59,7 +59,7 @@ module.exports = {
         });
     },
     "Fold Function":function (test) {
-        b_([1, 2, 3]).foldLeft(0, sum, function (value) {
+        b_([1, 2, 3]).foldLeft(0, b_.functions.sum, function (value) {
             test.equals(value, 6);
             test.done();
         });
@@ -89,7 +89,7 @@ module.exports = {
         });
     },
     "Filter Function":function (test) {
-        b_(1, 2, 3, 4).filter(even).realise(function (value) {
+        b_(1, 2, 3, 4).filter(b_.predicates.even).realise(function (value) {
             test.same(value, [2, 4]);
             test.done();
         });
@@ -101,7 +101,7 @@ module.exports = {
         });
     },
     "Find Function":function (test) {
-        b_(1, 2, 3, 4).find(even, function (option) {
+        b_(1, 2, 3, 4).find(b_.predicates.even, function (option) {
             test.equals(option.get(), 2)
             test.done()
         })
@@ -119,7 +119,7 @@ module.exports = {
         })
     },
     "Take While From sequence":function (test) {
-        b_(1, 2, 3, 4).takeWhile(lessThan3, function (value) {
+        b_(1, 2, 3, 4).takeWhile(b_.predicates.lessThan(3), function (value) {
             test.same(value, [1, 2])
             test.done()
         })
@@ -131,7 +131,7 @@ module.exports = {
         })
     },
     "Find Function with No Matches Returns Empty Option":function (test) {
-        b_(1, 3, 5, 7).find(even, function (option) {
+        b_(1, 3, 5, 7).find(b_.predicates.even, function (option) {
             test.ok(option.isEmpty)
             test.done();
         });
@@ -148,7 +148,7 @@ module.exports = {
         });
     },
     "Sequences should not stack overflow with a filter":function (test) {
-        b_.range(1, 5000).filter(lessThan3).realise(function(data) {
+        b_.range(1, 5000).filter(b_.predicates.lessThan(3)).realise(function(data) {
 	     test.done();
         });
     }
@@ -157,20 +157,12 @@ module.exports = {
     //TODO: Add a test for flatMap with callback
 
 };
-function multiplyBy100(i) {
-    return i * 100;
-}
+
 function multiplyBy100withCallback(i, callback) {
     callback(i * 100);
 }
-function sum(seed, i) {
-    return seed + i;
-}
 function sumWithCallback(seed, i, callback) {
     callback(seed + i);
-}
-function even(i) {
-    return i % 2 == 0;
 }
 function evenWithCallback(i, callback) {
     callback(i % 2 == 0);
@@ -185,9 +177,7 @@ function DummyIterator() {
     }
 }
 DummyIterator.prototype = new b_.iterators.Iterator();
-function lessThan3(i) {
-    return i < 3;
-}
+
 function lessThan3WithCallback(i, callback) {
     callback(i < 3);
 }
