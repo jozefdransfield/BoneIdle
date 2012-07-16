@@ -70,6 +70,12 @@ module.exports = {
             test.done();
         });
     },
+    "Head Returns Value":function (test) {
+        b_([1, 2, 3]).head(function (value) {
+            test.same(value.get(), 1);
+            test.done();
+        });
+    },
     "Head Returns Empty Option on Empty Array":function (test) {
         b_([]).head(function (value) {
             test.ok(value.isEmpty());
@@ -135,7 +141,13 @@ module.exports = {
             test.same(values, [1, 2, 3, 4, 5, 6]);
             test.done();
         })
+    },
+    "Sequences should not stack overflow":function (test) {
+        b_.range(1, Number.MAX_VALUE).realise(function(data) {
+	     test.done();
+        });
     }
+    
     //TODO: Add a split on test with and without callback
     //TODO: Add a test for flatMap with callback
 
