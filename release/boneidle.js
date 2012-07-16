@@ -63,11 +63,11 @@ function Chain(f) {
     }
     function nextFunction(param, callback) {
         var f = funcs.pop();
-        f(param, function (either) {
-            if (either.isRight() && funcs.length > 0) {
+        f(param, function (option) {
+            if (!option.isEmpty() && funcs.length > 0) {
                 nextFunction(param, callback);
             } else {
-                callback(either)
+                callback(option);
             }
         });
     }
@@ -112,8 +112,7 @@ function Either(isLeft, value) {
             return right;
         }
     }
-}}, "boneidle.iterators": function(exports, require, module) {var pair = require("./boneidle.pair");
-var markers = require("./boneidle.markers");
+}}, "boneidle.iterators": function(exports, require, module) {var tuple = require("./boneidle.tuple");
 var shared = require("./boneidle.shared");
 
 module.exports = {
@@ -145,7 +144,7 @@ function MapIterator(iterator, func) {
     this.next = function (callback) {
         if (callback) {
             iterator.next(function (value) {
-                functionValue(func, value, callback);
+                func(value, callback);
             });
             return;
         }
@@ -253,7 +252,7 @@ function ObjectIterator(obj) {
     this.hasNext = arrayIterator.hasNext;
     this.next = function (callback) {
         arrayIterator.next(function (key) {
-            callback(new pair.Pair(key, obj[key]));
+            callback(new tuple.Pair(key, obj[key]));
         });
     }
 }
@@ -281,11 +280,11 @@ function FilterIterator(iterator, predicate) {
 
 function RangeIterator(from, to) {
     var i = from;
-    this.hasNext = function () {
-        return i <= to;
+    this.hasNext = function (callback) {
+        callback(i <= to);
     }
-    this.next = function () {
-        return i++;
+    this.next = function (callback) {
+        callback(i++);
     }
 }
 
@@ -330,7 +329,6 @@ function StreamIterator(stream) {
     function handleEndOrClose() {
         closed = true;
         runTopCallback();
-
     }
 
     function handleData(data) {
@@ -349,6 +347,9 @@ function StreamIterator(stream) {
         if (buffer.length > 0) {
             callback(true)
         } else {
+            if (closed) {
+                callback(false);
+            }
             callbacks.push(function () {
                 callback(!closed);
             });
@@ -362,14 +363,6 @@ function StreamIterator(stream) {
                 callback(buffer.pop());
             });
         }
-    }
-}
-
-function functionValue(obj, value, callback) {
-    if (obj instanceof markers.FunctionWithCallbackWrapper) {
-        obj.func(value, callback);
-    } else {
-        callback(obj(value));
     }
 }
 
@@ -405,8 +398,7 @@ function returnAndClear(obj) {
  */
 
 var iterators = require("./boneidle.iterators");
-var pair = require("./boneidle.pair");
-var markers = require("./boneidle.markers");
+var tuple = require("./boneidle.tuple");
 var shared = require("./boneidle.shared");
 var option = require("./boneidle.option");
 var either = require("./boneidle.either");
@@ -432,18 +424,18 @@ function sequence() {
 }
 
 sequence.debug = debug_sequence;
-sequence.chain = function(f) {
+sequence.chain = function (f) {
     return new chain.Chain(f);
 }
 sequence.range = range;
 sequence.option = option;
 sequence.stream = stream;
 sequence.either = either;
-sequence.pair = function(first, second) {
-    return new pair.Pair(first, second);
+sequence.pair = function (first, second) {
+    return new tuple.Pair(first, second);
 }
-sequence.markers = markers;
 sequence.iterators = iterators;
+sequence.$ = wrap;
 
 
 function debug_sequence() {
@@ -486,24 +478,33 @@ function DebugSequence(sequence) {
     }
 }
 
+function wrap(f) {
+    return function () {
+        var callback = arguments[arguments.length - 1];
+        var newArgs = Array.prototype.slice.call(arguments, 0, arguments.length - 1)
+        callback(f.apply(null, newArgs));
+    }
+}
+
 function Sequence(iterator) {
     var self = this;
     this.map = function (func) {
+        return self.map$(wrap(func));
+    }
+    this.map$ = function (func) {
         return new Sequence(new iterators.MapIterator(iterator, func))
     }
     this.flatMap = function (func) {
         return new Sequence(new iterators.FlatMapIterator(iterator, func));
     }
     this.foldLeft = function (seed, func, callback) {
+        return self.foldLeft$(seed, wrap(func), callback);
+    }
+    this.foldLeft$ = function (seed, func, callback) {
         materialise(seed, iterator, callback, function (seed, iterator, next, callback, action) {
-            if (func instanceof markers.FunctionWithCallbackWrapper) {
-                func.func(seed, next, function (seed) {
-                    materialise(seed, iterator, callback, action);
-                })
-            } else {
-                seed = func(seed, next);
+            func(seed, next, function (seed) {
                 materialise(seed, iterator, callback, action);
-            }
+            })
         });
     }
     this.head = function (callback) {
@@ -518,9 +519,15 @@ function Sequence(iterator) {
         });
     }
     this.filter = function (predicate) {
+        return self.filter$(wrap(predicate));
+    }
+    this.filter$ = function (predicate) {
         return new Sequence(new iterators.FilterIterator(iterator, predicate));
     }
     this.find = function (predicate, callback) {
+        return self.find$(wrap(predicate), callback);
+    }
+    this.find$ = function (predicate, callback) {
         return shared.firstMatch(iterator, predicate, callback);
     }
     this.realise = function (callback) {
@@ -530,6 +537,9 @@ function Sequence(iterator) {
         });
     }
     this.splitOn = function (predicate) {
+        return self.splitOn(wrap(predicate));
+    }
+    this.splitOn$ = function (predicate) {
         return new Sequence(new SplitOnIterator(iterator, predicate));
     }
     this.take = function (c, callback) {
@@ -549,8 +559,10 @@ function Sequence(iterator) {
 
     }
     this.takeWhile = function (predicate, callback) {
+        self.takeWhile$(wrap(predicate), callback);
+    }
+    this.takeWhile$ = function (predicate, callback) {
         takeWhileInternal(self, [], predicate, callback)
-
     }
     this.join = function () {
         var sequences = [self];
@@ -566,12 +578,14 @@ function Sequence(iterator) {
 
 function takeWhileInternal(sequence, values, predicate, callback) {
     sequence.head(function (option) {
-        if (predicate(option.get())) {
-            values.push(option.get());
-            takeWhileInternal(sequence, values, predicate, callback);
-        } else {
-            callback(values);
-        }
+        predicate(option.get(), function (matches) {
+            if (matches) {
+                values.push(option.get());
+                takeWhileInternal(sequence, values, predicate, callback);
+            } else {
+                callback(values);
+            }
+        })
     });
 }
 
@@ -579,26 +593,16 @@ function materialise(result, iterator, callback, action) {
     iterator.hasNext(function (hasNext) {
         if (hasNext) {
             iterator.next(function (next) {
-                action(result, iterator, next, callback, action);
+                process.nextTick(function() {
+                    action(result, iterator, next, callback, action);
+                });
             });
         } else {
             callback(result);
         }
     });
 }
-
-
-}, "boneidle.markers": function(exports, require, module) {module.exports = {
-    FunctionWithCallbackWrapper: FunctionWithCallbackWrapper,
-    usingCallback: usingCallback
-}
-function FunctionWithCallbackWrapper(func) {
-    this.func = func;
-}
-
-function usingCallback(func) {
-    return new FunctionWithCallbackWrapper(func);
-}}, "boneidle.option": function(exports, require, module) {module.exports = {
+}, "boneidle.option": function(exports, require, module) {module.exports = {
     Option: Option,
     some: some,
     none: none
@@ -631,19 +635,7 @@ function some(value) {
 
 function none() {
     return new Option(true);
-}}, "boneidle.pair": function(exports, require, module) {module.exports = {
-    Pair: Pair
-}
-
-function Pair(first, second) {
-    this.__defineGetter__('first', function(){
-        return first;
-    });
-    this.__defineGetter__('second', function(){
-        return second;
-    });
-}
-}, "boneidle.queue": function(exports, require, module) {module.exports = {
+}}, "boneidle.queue": function(exports, require, module) {module.exports = {
     Queue: Queue
 }
 
@@ -663,35 +655,49 @@ function Queue() {
             func();
         }
     }
-}}, "boneidle.shared": function(exports, require, module) {var markers = require("./boneidle.markers");
-var option = require("./boneidle.option");
+}}, "boneidle.shared": function(exports, require, module) {var option = require("./boneidle.option");
 
 module.exports = {
-    firstMatch:firstMatch
+    firstMatch:firstMatch,
+    tick: tick
 }
 
 function firstMatch(iterator, predicate, callback) {
     iterator.hasNext(function (hasNext) {
         if (hasNext) {
             iterator.next(function (value) {
-                if (predicate instanceof markers.FunctionWithCallbackWrapper) {
-                    predicate.func(value, function (passed) {
-                        if (passed) {
-                            callback(option.some(value));
-                        } else {
-                            firstMatch(iterator, predicate, callback);
-                        }
-                    });
-                } else {
-                    if (predicate(value)) {
+                predicate(value, function (passed) {
+                    if (passed) {
                         callback(option.some(value));
                     } else {
-                        firstMatch(iterator, predicate, callback);
+                        tick(function() {
+                            firstMatch(iterator, predicate, callback);
+                        });
                     }
-                }
+                });
             })
         } else {
             callback(option.none());
         }
     });
-}}});
+}
+
+function tick(f) {
+      if (typeof window != 'undefined') {
+          window.setTimeout(f, 0);
+      } else {
+          process.nextTick(f)
+      }
+}}, "boneidle.tuple": function(exports, require, module) {module.exports = {
+    Pair: Pair
+}
+
+function Pair(first, second) {
+    this.__defineGetter__('first', function(){
+        return first;
+    });
+    this.__defineGetter__('second', function(){
+        return second;
+    });
+}
+}});

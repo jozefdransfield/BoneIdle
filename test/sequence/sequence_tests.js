@@ -146,6 +146,11 @@ module.exports = {
         b_.range(1, 5000).realise(function(data) {
 	     test.done();
         });
+    },
+    "Sequences should not stack overflow with a filter":function (test) {
+        b_.range(1, 5000).filter(lessThan3).realise(function(data) {
+	     test.done();
+        });
     }
     
     //TODO: Add a split on test with and without callback
