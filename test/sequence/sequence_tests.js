@@ -143,7 +143,7 @@ module.exports = {
         })
     },
     "Sequences should not stack overflow":function (test) {
-        b_.range(1, Number.MAX_VALUE).realise(function(data) {
+        b_.range(1, 5000).realise(function(data) {
 	     test.done();
         });
     }
