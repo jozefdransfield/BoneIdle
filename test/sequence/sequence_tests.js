@@ -70,6 +70,12 @@ module.exports = {
             test.done();
         });
     },
+    "Head Returns Value":function (test) {
+        b_([1, 2, 3]).head(function (value) {
+            test.same(value.get(), 1);
+            test.done();
+        });
+    },
     "Head Returns Empty Option on Empty Array":function (test) {
         b_([]).head(function (value) {
             test.ok(value.isEmpty());
