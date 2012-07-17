@@ -23,8 +23,8 @@ module.exports = {
         });
     },
     "Realise Returns Array For Sequence Initialised with nested objects":function (test) {
-        b_({a: {"message": "hello"}, b:{"message": "world"}}).realise(function (value) {
-            test.same(value, [b_.pair("a", {"message": "hello"}), b_.pair("b", {"message": "world"})]);
+        b_({a:{"message":"hello"}, b:{"message":"world"}}).realise(function (value) {
+            test.same(value, [b_.pair("a", {"message":"hello"}), b_.pair("b", {"message":"world"})]);
             test.done()
         });
     },
@@ -48,6 +48,12 @@ module.exports = {
     },
     "Flat Map function":function (test) {
         b_([1, 2, 3]).flatMap(expandToSequence).realise(function (val) {
+            test.same(val, [1, 2, 3, 2, 4, 6, 3, 6, 9]);
+            test.done();
+        });
+    },
+    "Flat Map function with callback":function (test) {
+        b_([1, 2, 3]).flatMap$(expandToSequenceWithCallback).realise(function (val) {
             test.same(val, [1, 2, 3, 2, 4, 6, 3, 6, 9]);
             test.done();
         });
@@ -143,19 +149,17 @@ module.exports = {
         })
     },
     "Sequences should not stack overflow":function (test) {
-        b_.range(1, 5000).realise(function(data) {
-	     test.done();
+        b_.range(1, 5000).realise(function (data) {
+            test.done();
         });
     },
     "Sequences should not stack overflow with a filter":function (test) {
-        b_.range(1, 5000).filter(b_.predicates.lessThan(3)).realise(function(data) {
-	     test.done();
+        b_.range(1, 5000).filter(b_.predicates.lessThan(3)).realise(function (data) {
+            test.done();
         });
     }
-    
-    //TODO: Add a split on test with and without callback
-    //TODO: Add a test for flatMap with callback
 
+    //TODO: Add a split on test with and without callback
 };
 
 function multiplyBy100withCallback(i, callback) {
@@ -183,4 +187,8 @@ function lessThan3WithCallback(i, callback) {
 }
 function expandToSequence(val) {
     return b_([val * 1, val * 2, val * 3]);
+}
+
+function expandToSequenceWithCallback(val, callback) {
+    callback(b_([val * 1, val * 2, val * 3]));
 }
