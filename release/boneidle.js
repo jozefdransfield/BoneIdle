@@ -63,11 +63,11 @@ function Chain(f) {
     }
     function nextFunction(param, callback) {
         var f = funcs.pop();
-        f(param, function (option) {
-            if (!option.isEmpty() && funcs.length > 0) {
+        f(param, function (validity) {
+            if (validity.isValid() && funcs.length > 0) {
                 nextFunction(param, callback);
             } else {
-                callback(option);
+                callback(validity);
             }
         });
     }
@@ -112,7 +112,29 @@ function Either(isLeft, value) {
             return right;
         }
     }
-}}, "boneidle.iterators": function(exports, require, module) {var tuple = require("./boneidle.tuple");
+}}, "boneidle.functions": function(exports, require, module) {module.exports = {
+    sum: sum,
+    multiplyBy: multiplyBy,
+    divideBy: divideBy
+}
+
+function sum(seed, i) {
+    return seed + i;
+}
+
+function multiplyBy(num) {
+    return function(i) {
+        return i*num;
+    }
+}
+
+function divideBy(num) {
+    return function(i) {
+        return i/num;
+    }
+}
+
+}, "boneidle.iterators": function(exports, require, module) {var tuple = require("./boneidle.tuple");
 var shared = require("./boneidle.shared");
 
 module.exports = {
@@ -125,7 +147,6 @@ module.exports = {
     FilterIterator: FilterIterator,
     RangeIterator: RangeIterator,
     EmptyIterator: EmptyIterator,
-    SplitOnIterator: SplitOnIterator,
     StreamIterator: StreamIterator
 }
 
@@ -190,14 +211,15 @@ function FlatMapIterator(iterator, func) {
         iterator.hasNext(function (hasNext) {
             if (hasNext) {
                 iterator.next(function (next) {
-                    var s = func(next);
-                    s.hasNext(function (childHasNext) {
-                        if (childHasNext) {
-                            callback(true, s);
-                        } else {
-                            findFirstSequenceWithNext(iterator, func, callback);
-                        }
-                    })
+                    func(next, function(s) {
+                        s.hasNext(function (childHasNext) {
+                            if (childHasNext) {
+                                callback(true, s);
+                            } else {
+                                findFirstSequenceWithNext(iterator, func, callback);
+                            }
+                        })
+                    });
                 })
             } else {
                 callback(false);
@@ -297,21 +319,6 @@ function EmptyIterator() {
     }
 }
 
-function SplitOnIterator(iterator, predicate) {
-    var next;
-    this.hasNext = function () {
-        next = findWhileNotMatches(iterator, predicate);
-        return next.hasNext();
-    }
-    this.next = function () {
-        if (next) {
-            return returnAndClear(next);
-        } else {
-            return findWhileNotMatches(iterator, predicate);
-        }
-    }
-}
-
 function StreamIterator(stream) {
     var self = this;
     var callbacks = [];
@@ -366,15 +373,6 @@ function StreamIterator(stream) {
     }
 }
 
-function findWhileNotMatches(iterator, predicate) {
-    var values = [];
-    var currentValue;
-    while ((currentValue = iterator.next()) && !predicate(currentValue)) {
-        values.push(currentValue);
-    }
-    return sequence(values);
-}
-
 function returnAndClear(obj) {
     var retVal = obj;
     obj = null;
@@ -401,9 +399,12 @@ var iterators = require("./boneidle.iterators");
 var tuple = require("./boneidle.tuple");
 var shared = require("./boneidle.shared");
 var option = require("./boneidle.option");
+var validity = require("./boneidle.validity");
 var either = require("./boneidle.either");
 var chain = require("./boneidle.chain");
 var queue = require("./boneidle.queue");
+var predicates = require("./boneidle.predicates")
+var functions = require("./boneidle.functions")
 
 module.exports = sequence;
 
@@ -429,8 +430,11 @@ sequence.chain = function (f) {
 }
 sequence.range = range;
 sequence.option = option;
+sequence.validity = validity;
 sequence.stream = stream;
 sequence.either = either;
+sequence.predicates = predicates;
+sequence.functions = functions;
 sequence.pair = function (first, second) {
     return new tuple.Pair(first, second);
 }
@@ -495,6 +499,9 @@ function Sequence(iterator) {
         return new Sequence(new iterators.MapIterator(iterator, func))
     }
     this.flatMap = function (func) {
+        return self.flatMap$(wrap(func));
+    }
+    this.flatMap$ = function (func) {
         return new Sequence(new iterators.FlatMapIterator(iterator, func));
     }
     this.foldLeft = function (seed, func, callback) {
@@ -535,12 +542,6 @@ function Sequence(iterator) {
             result.push(next);
             materialise(result, iterator, callback, action);
         });
-    }
-    this.splitOn = function (predicate) {
-        return self.splitOn(wrap(predicate));
-    }
-    this.splitOn$ = function (predicate) {
-        return new Sequence(new SplitOnIterator(iterator, predicate));
     }
     this.take = function (c, callback) {
         var values = [];
@@ -635,7 +636,54 @@ function some(value) {
 
 function none() {
     return new Option(true);
-}}, "boneidle.queue": function(exports, require, module) {module.exports = {
+}}, "boneidle.predicates": function(exports, require, module) {
+module.exports = {
+    isBlank: isBlank,
+    even: even,
+    odd: odd,
+    not: not,
+    lessThan: lessThan,
+    greaterThan: greaterThan,
+    equals: equals
+}
+
+
+function isBlank(value) {
+    return (!value || value.length == 0);
+}
+
+function even(value) {
+    return value % 2 == 0;
+}
+
+function odd(value) {
+    return value % 2 != 0;
+}
+
+function not(f) {
+    return function(value) {
+        return !f(value)
+    };
+}
+
+function lessThan(num) {
+    return function(i) {
+        return i < num;
+    }
+}
+
+function greaterThan(num) {
+    return function(i) {
+        return i > num;
+    }
+}
+
+function equals(obj) {
+    return function(value) {
+        return obj == value;
+    }
+}
+}, "boneidle.queue": function(exports, require, module) {module.exports = {
     Queue: Queue
 }
 
@@ -699,5 +747,27 @@ function Pair(first, second) {
     this.__defineGetter__('second', function(){
         return second;
     });
+}
+}, "boneidle.validity": function(exports, require, module) {module.exports = {
+    Validity:Validity,
+    valid: valid,
+    invalid: invalid
+}
+
+function valid(obj) {
+    return new Validity(obj, true);
+}
+
+function invalid(obj) {
+    return new Validity(obj, false);
+}
+
+function Validity(value, valid) {
+    this.isValid = function() {
+        return valid;
+    }
+    this.value = function() {
+        return value;
+    }
 }
 }});
