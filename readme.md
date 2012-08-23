@@ -1,5 +1,5 @@
 [![build status](https://secure.travis-ci.org/jozefdransfield/BoneIdle.png)](http://travis-ci.org/jozefdransfield/BoneIdle)
-Bone Idle
+BoneIdle
 =========
 
 ### Lazy Functional Library For Node.js
